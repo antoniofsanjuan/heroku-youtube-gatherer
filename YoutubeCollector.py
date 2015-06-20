@@ -12,13 +12,12 @@ import time
 import codecs
 import HTMLParser
 import getopt
-import dao.DAOYoutubeCollector
 
 from apiclient.errors import HttpError
 from YoutubeSearch import YoutubeSearch
 from YoutubeChannel import YoutubeChannel
 from SocialWebSites import SocialWebSites
-from dao.DAOYoutubeCollector import DAOYoutubeCollector
+from dao import DAOYoutubeCollector
 
 from gdata.youtube import service
 from plus import GooglePlusService
