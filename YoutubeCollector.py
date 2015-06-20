@@ -85,12 +85,12 @@ _yt_channels_csv_file_path = None
 _yt_social_csv_file_path = None
 _videos_2_follow_config_file_path = None
 
-_yt_csv_file_path_regex = "DATA\\\yt_comments_%s.csv"
-_gp_csv_file_path_regex = "DATA\\\gp_comments_%s.csv"
-_yt_videos_csv_file_path_regex = "DATA\\\yt_videos_%s.csv"
-_yt_channels_csv_file_path_regex = "DATA\\\yt_channel_%s.csv"
-_yt_social_csv_file_path_regex = "DATA\\\yt_social_%s.csv"
-_videos_2_follow_config_file_path = '%s\\%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
+_yt_csv_file_path_regex = "DATA/yt_comments_%s.csv"
+_gp_csv_file_path_regex = "DATA/gp_comments_%s.csv"
+_yt_videos_csv_file_path_regex = "DATA/yt_videos_%s.csv"
+_yt_channels_csv_file_path_regex = "DATA/yt_channel_%s.csv"
+_yt_social_csv_file_path_regex = "DATA/yt_social_%s.csv"
+_videos_2_follow_config_file_path = '%s/%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
 
 _gp_csv_file = None
 _yt_csv_file = None
