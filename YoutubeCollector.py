@@ -12,12 +12,14 @@ import time
 import codecs
 import HTMLParser
 import getopt
+import dao.DAOYoutubeCollector
 
-from apiclient.errors import HttpError
+#from apiclient.errors import HttpError
 from YoutubeSearch import YoutubeSearch
 from YoutubeChannel import YoutubeChannel
 from SocialWebSites import SocialWebSites
-from dao import DAOYoutubeCollector
+from dao.DAOYoutubeCollector import DAOYoutubeCollector
+from S3manager import S3manager
 
 from gdata.youtube import service
 from plus import GooglePlusService
@@ -38,6 +40,7 @@ _mode = "auto"
 _from = None
 _to = None
 _b_avoid_ddbb = True
+_load_files_to_s3 = False
 _timeStamp = None
 
 _DIR_LOG = "LOGS"
@@ -85,12 +88,12 @@ _yt_channels_csv_file_path = None
 _yt_social_csv_file_path = None
 _videos_2_follow_config_file_path = None
 
-_yt_csv_file_path_regex = "DATA/yt_comments_%s.csv"
-_gp_csv_file_path_regex = "DATA/gp_comments_%s.csv"
-_yt_videos_csv_file_path_regex = "DATA/yt_videos_%s.csv"
-_yt_channels_csv_file_path_regex = "DATA/yt_channel_%s.csv"
-_yt_social_csv_file_path_regex = "DATA/yt_social_%s.csv"
-_videos_2_follow_config_file_path = '%s/%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
+_yt_csv_file_path_regex = "DATA\\\yt_comments_%s.csv"
+_gp_csv_file_path_regex = "DATA\\\gp_comments_%s.csv"
+_yt_videos_csv_file_path_regex = "DATA\\\yt_videos_%s.csv"
+_yt_channels_csv_file_path_regex = "DATA\\\yt_channel_%s.csv"
+_yt_social_csv_file_path_regex = "DATA\\\yt_social_%s.csv"
+_videos_2_follow_config_file_path = '%s\\%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
 
 _gp_csv_file = None
 _yt_csv_file = None
@@ -248,7 +251,8 @@ def usage():
     print 'Usage: '+sys.argv[0]+' -m <auto|search|loader[-t yyyy-mm-dd]>'
     print '\t-m: or --mode, set the working mode (search, auto collector and loader)'
     print '\t\t--from: load data files since the specified date wirh format \'yyyy-mm-dd\''
-    print '\t\t--to: load data files until the specified date wirh format \'yyyy-mm-dd\' or today if none is set.'
+    print '\t\t--db: load data files into MySql database. MySql database must be created and activated.'
+    print '\t\t--s3: upload data files to S3 Amazon service.'
 
 ############################################
 ###############     MAIN    ################
@@ -269,7 +273,7 @@ def main(argv):
     #exit(0)
 
     try:
-        opts, args = getopt.getopt(argv[1:], 'hmf:', ['help', 'mode=', 'from', 'db'])
+        opts, args = getopt.getopt(argv[1:], 'hmf:', ['help', 'mode=', 'from', 'db', 's3'])
         if not opts:
             print 'No options supplied'
             #usage()
@@ -301,6 +305,9 @@ def main(argv):
         elif opt in ('--db'): # If parameter set, load data into database
             global _b_avoid_ddbb
             _b_avoid_ddbb = False
+        elif opt in ('--s3'): # If parameter set, upload data files to Amazon S3
+            global _load_files_to_s3
+            _load_files_to_s3 = True
 
 
     argv = []
@@ -488,12 +495,16 @@ def main(argv):
 
         elif _mode == 'auto':
 
+            print "Processing videos in automatic mode."
+            printLog("Processing videos in automatic mode.")
+
             if not _b_avoid_ddbb:
-                print "\nProcessing videos in automatic mode. Database activated..."
-                printLog("Processing videos in automatic mode. Database activated...")
-            else:
-                print "\nProcessing videos in automatic mode..."
-                printLog("Processing videos in automatic mode...")
+                print "\tLoad files into database activated."
+                printLog("\tLoad files into database activated.")
+
+            if _load_files_to_s3:
+                print "\tUpload files to Amazon S3 service is activated."
+                printLog("\tUpload files to Amazon S3 service is activated.")
 
             ''' In automatic mode, we have to APPEND multiple videos data to files'''
             openDataFiles('a')
@@ -658,11 +669,46 @@ def main(argv):
             else:
                 printLog("*** WARM ***: \tData files have not been loaded!")
 
-        _file_log.close()
+
+        if _load_files_to_s3:
+
+            s3_service = S3manager()
+
+            openDataFiles('r')
+            print "Uploading file %s to S3...'" % _gp_csv_file_path
+            printLog("Uploading file %s to S3...'" % _gp_csv_file_path)
+            if s3_service.uploadFile( _gp_csv_file_path ):
+                print "\tTransfer completed."
+
+            print "Uploading file %s to S3...'" % _yt_csv_file_path
+            printLog("Uploading file %s to S3...'" % _yt_csv_file_path)
+            if s3_service.uploadFile( _yt_csv_file_path ):
+                print "\tTransfer completed."
+
+            print "Uploading file %s to S3...'" % _yt_videos_csv_file_path
+            printLog("Uploading file %s to S3...'" % _yt_videos_csv_file_path)
+            if s3_service.uploadFile( _yt_videos_csv_file_path ):
+                print "\tTransfer completed."
+
+            print "Uploading file %s to S3...'" % _yt_channels_csv_file_path
+            printLog("Uploading file %s to S3...'" % _yt_channels_csv_file_path)
+            if s3_service.uploadFile( _yt_channels_csv_file_path ):
+                print "\tTransfer completed."
+
+            print "Uploading file %s to S3...'" % _yt_social_csv_file_path
+            printLog("Uploading file %s to S3...'" % _yt_social_csv_file_path)
+            if s3_service.uploadFile( _yt_social_csv_file_path ):
+                print "\tTransfer completed."
+
 
     except (KeyboardInterrupt, SystemExit):
         print "\n\nShutting down youtube-gatherer..."
         pass
+    finally:
+        closeDataFiles()
+
+    _file_log.close()
+
 
 if __name__ == '__main__':
     main(sys.argv)
