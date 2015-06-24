@@ -13,6 +13,7 @@ import codecs
 import HTMLParser
 import getopt
 import dao.DAOYoutubeCollector
+import platform
 
 #from apiclient.errors import HttpError
 from YoutubeSearch import YoutubeSearch
@@ -47,7 +48,7 @@ _DIR_LOG = "LOGS"
 _DIR_DATA = "DATA"
 _DIR_CONFIG = "conf"
 _file_log = None
-_file_log_name = '%s\YoutubeGatherer_%s.log' % (_DIR_LOG, date_time_log)
+
 
 _query_bulk_load_yt_comments = None
 _query_bulk_load_gp_comments = None
@@ -88,12 +89,29 @@ _yt_channels_csv_file_path = None
 _yt_social_csv_file_path = None
 _videos_2_follow_config_file_path = None
 
-_yt_csv_file_path_regex = "DATA\\\yt_comments_%s.csv"
-_gp_csv_file_path_regex = "DATA\\\gp_comments_%s.csv"
-_yt_videos_csv_file_path_regex = "DATA\\\yt_videos_%s.csv"
-_yt_channels_csv_file_path_regex = "DATA\\\yt_channel_%s.csv"
-_yt_social_csv_file_path_regex = "DATA\\\yt_social_%s.csv"
-_videos_2_follow_config_file_path = '%s\\%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
+
+if (platform.system().lower() == 'windows'):
+
+    _file_log_name = '%s\YoutubeGatherer_%s.log' % (_DIR_LOG, date_time_log)
+
+    _yt_csv_file_path_regex = "DATA\\\yt_comments_%s.csv"
+    _gp_csv_file_path_regex = "DATA\\\gp_comments_%s.csv"
+    _yt_videos_csv_file_path_regex = "DATA\\\yt_videos_%s.csv"
+    _yt_channels_csv_file_path_regex = "DATA\\\yt_channel_%s.csv"
+    _yt_social_csv_file_path_regex = "DATA\\\yt_social_%s.csv"
+    _videos_2_follow_config_file_path = '%s\\%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
+
+else:
+
+    _file_log_name = '%s/YoutubeGatherer_%s.log' % (_DIR_LOG, date_time_log)
+
+    _yt_csv_file_path_regex = "DATA/yt_comments_%s.csv"
+    _gp_csv_file_path_regex = "DATA/gp_comments_%s.csv"
+    _yt_videos_csv_file_path_regex = "DATA/yt_videos_%s.csv"
+    _yt_channels_csv_file_path_regex = "DATA/yt_channel_%s.csv"
+    _yt_social_csv_file_path_regex = "DATA/yt_social_%s.csv"
+    _videos_2_follow_config_file_path = '%s/%s'% (_DIR_CONFIG, 'videos_2_follow_config_file.cfg')
+
 
 _gp_csv_file = None
 _yt_csv_file = None
