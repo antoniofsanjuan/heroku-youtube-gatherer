@@ -218,7 +218,7 @@ class GooglePlusService(object):
 
 
     def __init__(self, argv):
-        print "G+: ____INIT____"
+        print "G+: __INIT(2)__"
         # Authenticate and construct service.
         self._gp_service = None
         self._flags = None
