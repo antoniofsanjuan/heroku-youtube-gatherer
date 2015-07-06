@@ -667,16 +667,16 @@ def main(argv):
             ### TODO: IMPORTANT! REMOVE THE LINE BELOW AND FIX THE PROBLEM WITH --S3 PARAMENTER
             _load_files_to_s3 = True;
 
-            print "Processing videos in automatic mode."
-            printLog("Processing videos in automatic mode.")
+            print "Processing videos in automatic mode.\n"
+            printLog("Processing videos in automatic mode.\n")
 
             if not _b_avoid_ddbb:
-                print "\tLoad files into database activated."
-                printLog("\tLoad files into database activated.")
+                print "\t* Load files into database activated.\n"
+                printLog("\t* Load files into database activated.\n")
 
             if _load_files_to_s3:
-                print "\tUpload files to Amazon S3 service is activated."
-                printLog("\tUpload files to Amazon S3 service is activated.")
+                print "\t* Upload files to Amazon S3 service is activated."
+                printLog("\t* Upload files to Amazon S3 service is activated.")
 
             ''' In automatic mode, we have to APPEND multiple videos data to files'''
             openDataFiles('a')
@@ -854,34 +854,35 @@ def main(argv):
             s3_service = S3manager()
 
 
-            data_folder = time.strftime("%Y%m%d") + '/' + 'DATA'
+            time_folder = time.strftime("%Y%m%d")
+            data_folder = time_folder + '/' + 'DATA'
 
             s3_service.createFolder(data_folder)
 
             openDataFiles('r')
-            print "Uploading file %s to S3...'" % data_folder + '/' + _gp_csv_file_path
-            printLog("Uploading file %s to S3...'" % data_folder + '/' + _gp_csv_file_path)
-            if s3_service.uploadFile( data_folder + '/' + _gp_csv_file_path ):
+            print "Uploading file %s to S3...'" % time_folder + '/' + _gp_csv_file_path
+            printLog("Uploading file %s to S3...'" % time_folder + '/' + _gp_csv_file_path)
+            if s3_service.uploadFile( time_folder + '/' + _gp_csv_file_path ):
                 print "\tTransfer completed."
 
-            print "Uploading file %s to S3...'" % data_folder + '/' + _yt_csv_file_path
-            printLog("Uploading file %s to S3...'" % data_folder + '/' + _yt_csv_file_path)
-            if s3_service.uploadFile( data_folder + '/' + _yt_csv_file_path ):
+            print "Uploading file %s to S3...'" % time_folder + '/' + _yt_csv_file_path
+            printLog("Uploading file %s to S3...'" % time_folder + '/' + _yt_csv_file_path)
+            if s3_service.uploadFile( time_folder + '/' + _yt_csv_file_path ):
                 print "\tTransfer completed."
 
-            print "Uploading file %s to S3...'" % data_folder + '/' + _yt_videos_csv_file_path
-            printLog("Uploading file %s to S3...'" % data_folder + '/' + _yt_videos_csv_file_path)
-            if s3_service.uploadFile( data_folder + '/' + _yt_videos_csv_file_path ):
+            print "Uploading file %s to S3...'" % time_folder + '/' + _yt_videos_csv_file_path
+            printLog("Uploading file %s to S3...'" % time_folder + '/' + _yt_videos_csv_file_path)
+            if s3_service.uploadFile( time_folder + '/' + _yt_videos_csv_file_path ):
                 print "\tTransfer completed."
 
-            print "Uploading file %s to S3...'" % data_folder + '/' + _yt_channels_csv_file_path
-            printLog("Uploading file %s to S3...'" % data_folder + '/' + _yt_channels_csv_file_path)
-            if s3_service.uploadFile( data_folder + '/' + _yt_channels_csv_file_path ):
+            print "Uploading file %s to S3...'" % time_folder + '/' + _yt_channels_csv_file_path
+            printLog("Uploading file %s to S3...'" % time_folder + '/' + _yt_channels_csv_file_path)
+            if s3_service.uploadFile( time_folder + '/' + _yt_channels_csv_file_path ):
                 print "\tTransfer completed."
 
-            print "Uploading file %s to S3...'" % data_folder + '/' + _yt_social_csv_file_path
-            printLog("Uploading file %s to S3...'" % data_folder + '/' + _yt_social_csv_file_path)
-            if s3_service.uploadFile( data_folder + '/' + _yt_social_csv_file_path ):
+            print "Uploading file %s to S3...'" % time_folder + '/' + _yt_social_csv_file_path
+            printLog("Uploading file %s to S3...'" % time_folder + '/' + _yt_social_csv_file_path)
+            if s3_service.uploadFile( time_folder + '/' + _yt_social_csv_file_path ):
                 print "\tTransfer completed."
 
 
