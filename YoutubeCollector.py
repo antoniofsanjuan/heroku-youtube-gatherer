@@ -4,6 +4,7 @@
 __author__ = 'antoniofsanjuan'
 __file__ = 'YoutubeCollector'
 
+import argparse
 import datetime
 import commands
 import os
@@ -12,21 +13,43 @@ import time
 import codecs
 import HTMLParser
 import getopt
-import dao.DAOYoutubeCollector
 import platform
+
+import httplib2
 
 #from apiclient.errors import HttpError
 from YoutubeSearch import YoutubeSearch
 from YoutubeChannel import YoutubeChannel
 from SocialWebSites import SocialWebSites
 from dao.DAOYoutubeCollector import DAOYoutubeCollector
+import dao.DAOYoutubeCollector
 from S3manager import S3manager
 
 from gdata.youtube import service
 from plus import GooglePlusService
-from YoutubeComments import GoogleCommentsService
-from oauth2client.tools import argparser
+from YoutubeComments_v3 import GoogleCommentsService
 
+from apiclient import discovery
+
+from oauth2client.file import Storage
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client import tools
+from oauth2client.tools import argparser, run_flow
+from oauth2client.client import AccessTokenRefreshError
+
+from oauth2client.client import OAuth2WebServerFlow
+
+from apiclient.discovery import build
+
+import httplib2
+import os
+import sys
+
+from apiclient.discovery import build_from_document
+from apiclient.errors import HttpError
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.file import Storage
+from oauth2client.tools import argparser, run_flow
 
 USERNAME = 'uahytcollector@gmail.com'
 PASSWORD = 'x3jkW5.a'
@@ -265,6 +288,126 @@ def loadVideos2FollowFromConfigFile(yt_search_service):
     return arr_videos
 
 
+def get_oauth2_authenticated_service(args):
+
+        print "get_oauth2_authenticated_service: *** INIT ***"
+
+        CLIENT_SECRETS_FILE = "client_secrets.json"
+
+        # A limited OAuth 2 access scope that allows for uploading files, but not other
+        # types of account access.
+        YOUTUBE_READONLY_SCOPE = "https://www.googleapis.com/auth/youtube.readonly"
+        YOUTUBE_READ_WRITE_SSL_SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"
+        YOUTUBE_API_SERVICE_NAME = "youtube"
+        YOUTUBE_API_VERSION = "v3"
+
+        REDIRECT_URI = 'http://localhost:8080/'
+
+        # Helpful message to display if the CLIENT_SECRETS_FILE is missing.
+        MISSING_CLIENT_SECRETS_MESSAGE = """
+        WARNING: Please configure OAuth 2.0
+
+        To make this sample run you will need to populate the client_secrets.json file
+        found at:
+
+           %s
+
+        with information from the APIs Console
+        https://code.google.com/apis/console#access
+
+        For more information about the client_secrets.json file format, please visit:
+        https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
+        """ % os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                           CLIENT_SECRETS_FILE))
+
+        credentials = None
+        num_retries = 3
+        b_error = True
+
+        while num_retries > 0 and b_error:
+
+            if 0 < num_retries < 3:
+                print "Retrying connection..."
+
+            try:
+
+                flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE,
+                  message=MISSING_CLIENT_SECRETS_MESSAGE,
+                  scope=YOUTUBE_READ_WRITE_SSL_SCOPE)
+
+                #parser = argparse.ArgumentParser(parents=[tools.argparser])
+                #flags = parser.parse_args()
+
+                #if credentials is None or credentials.invalid:
+                #    credentials = run_flow(flow, storage, flags)
+
+
+                storage = Storage("%s-oauth2.dat" % sys.argv[0])
+                credentials = storage.get()
+
+                args = argparser.parse_args()
+
+                if credentials is None or credentials.invalid:
+
+                    print "\t Credential is not longer valid"
+                    credentials = run_flow(flow, storage, args)
+
+
+                youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, http=credentials.authorize(httplib2.Http()))
+
+                #results = youtube.commentThreads().list(
+                #    part="snippet",
+                #    videoId='PAHRBOYG8sg',
+                #    maxResults=5,
+                #    key='usKbvXnvKS9XA377cncN0oZJ'
+                #).execute()
+                #
+                #for item in results["items"]:
+                #    comment = item["snippet"]["topLevelComment"]
+                #    author = comment["snippet"]["authorDisplayName"]
+                #    text = comment["snippet"]["textDisplay"]
+                #    print "Comment by %s: %s" % (author, text)
+
+
+                return youtube
+
+
+                    #auth_uri = flow.step1_get_authorize_url()
+                    #
+                    #opener = httplib2.Http();
+                    #opener.follow_all_redirects = True;
+                    #opener.follow_redirects = True;
+                    #
+                    #(response, body) = opener.request(auth_uri)
+                    #
+                    #print "response %s" % response
+                    #
+                    ## Manual refresh entering the url by console
+                    #auth_code = raw_input('Enter authorization code (parameter of URL): ')
+                    #credentials = flow.step2_exchange(auth_code)
+                    #
+                    #storage.put(credentials)
+
+                #http_auth = credentials.authorize(httplib2.Http())
+                #
+                #print "get_oauth2_authenticated_service: *** END ***"
+                #
+                #return discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, http=http_auth)
+
+                b_error = False
+
+            except AccessTokenRefreshError:
+                print "Warming: Credential is expired. Retrying connection..."
+                b_error = True
+                num_retries -= 1
+                time.sleep(5)
+                continue
+
+        print "get_oauth2_authenticated_service: *** END NONE***"
+        return None
+
+
+
 def usage():
     print 'Usage: '+sys.argv[0]+' -m <auto|search|loader[-t yyyy-mm-dd]>'
     print '\t-m: or --mode, set the working mode (search, auto collector and loader)'
@@ -409,8 +552,16 @@ def main(argv):
     _query_insert_yt_social_shares = _query_insert_yt_social_shares_regex %_yt_social_csv_file_path
 
 
-    client = service.YouTubeService()
-    client.ClientLogin(USERNAME, PASSWORD)
+    #client = service.YouTubeService()
+    #client.ClientLogin(USERNAME, PASSWORD)
+
+
+    #args = argparser.parse_args()
+    yt_service = get_oauth2_authenticated_service(args)
+
+
+    #http_auth = credentials.authorize(httplib2.Http())
+    #yt_service = build('youtube', 'v3', http=http_auth)
 
     global _file_log
     global _file_log_name
@@ -535,7 +686,6 @@ def main(argv):
 
         elif _mode == 'loader':
 
-            print 'DEGUB: *** Estamos en loader ***'
             printLog("Loading data files into database...")
 
             # Concatenate the timeStamp config in arg
@@ -569,6 +719,7 @@ def main(argv):
         for video in arr_videos:
             video_id = video['id']
             printLog("Processing video with id: %s\n" % video_id)
+            print "Processing video with id: %s\n" % video_id
 
             channel_id = video['snippet']['channelId']
 
@@ -596,38 +747,45 @@ def main(argv):
             printLog("\n")
 
             printLog("\nRetrieving \"Comments\" from Youtube...\n")
-            for comment in yt_comments_service.comments_generator(client, video_id):
+            print "\nRetrieving \"Comments\" from Youtube...\n"
 
-                #print "-----> DEBUG: Tenemos un nuevo comentario..."
+            #yt_comments_service.comments_generator(yt_service, video_id)
+
+            for item in yt_comments_service.comments_generator(yt_service, video_id):
+
                 yt_count += 1
-                author_name = comment.author[0].name.text
-                text = comment.content.text
-                last_pos = comment.id.text.rfind('/')
 
-                comment_id = comment.id.text[last_pos + 1::]
-                printLogTime("YT_Comment:%s" % comment.id.text, False)
-                printLogTime("Author:%s" % comment.author[0].name.text, False)
+                #print "Item:\n%s\n" % str(item)
 
-                printLogTime(comment.content.text, False)
+                comment = item["snippet"]["topLevelComment"]
+                author = comment["snippet"]["authorDisplayName"]
+                text = comment["snippet"]["textDisplay"]
+                likes = comment["snippet"]["likeCount"]
 
-                comment_string = comment.ToString()
-                replycount_first = comment_string.find("replyCount")
-                replycount_last = comment_string.find("</ns1:replyCount>")
-                printLog("*** G+ Comments? ----> %s" % comment_string[replycount_first + 11:replycount_last])
-                reply_count = int(comment_string[replycount_first + 11:replycount_last])
+                comment_id = comment['id']
+
+                #printLogTime(text, False)
+
+                reply_count = int( item["snippet"]['totalReplyCount'] )
+                #print "\tDEBUG: Author = %s" % author
+                #print "\tDEBUG: Comment = %s" % text
+                #print "\tDEBUG: reply_count = %s" % reply_count
+
+                try:
+
+                    #print "Antes de llamar a printCSVYoutubeComment..."
+                    _yt_csv_file.write(yt_comments_service.printCSVYoutubeComment(item, video_id, likes))
+                    #print "DEBUG COMMENT --->\n%s" % yt_comments_service.printCSVYoutubeComment(item, video_id, likes)
+
+                except:
+                    printLogTime("ERROR: Error writing Youtube comment to file.\nException: %s" % sys.exc_info()[0], True)
+                    printLogTime(sys.exc_info(), True);
+                    pass
 
                 if reply_count > 0:
                     # Retriving Likes for the global activity
                     gp_comment_activity_likes = gp_service.getActivityById(comment_id)
                     printLog("\n\tRetrieving \"G+ Comments\" from G+ Social Network...")
-
-                    try:
-
-                        _yt_csv_file.write(yt_comments_service.printCSVYoutubeComment(comment, video_id,
-                                                                                 gp_comment_activity_likes))
-                    except:
-                        printLogTime("ERROR: Error writing Youtube comment to file.\nException: %s" % sys.exc_info()[0], True)
-                        pass
 
                     # Retriving all comments and fields, then write them down to the G+ file
                     for gp_comment in gp_service.googlePlusActitivyInfoGenerator(comment_id):
