@@ -664,6 +664,9 @@ def main(argv):
 
         elif _mode == 'auto':
 
+            ### TODO: IMPORTANT! REMOVE THE LINE BELOW AND FIX THE PROBLEM WITH --S3 PARAMENTER
+            _load_files_to_s3 = True;
+
             print "Processing videos in automatic mode."
             printLog("Processing videos in automatic mode.")
 
