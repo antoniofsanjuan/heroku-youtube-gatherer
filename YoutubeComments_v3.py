@@ -189,7 +189,8 @@ class GoogleCommentsService(object):
                 key='usKbvXnvKS9XA377cncN0oZJ'
             ).execute()
 
-        print "TOTAL: %s" % len(results['items'])
+        ## Uncomment to DEBUG
+        #print "TOTAL: %s" % len(results['items'])
 
         #for item in results["items"]:
         #  comment = item["snippet"]["topLevelComment"]
@@ -234,11 +235,6 @@ class GoogleCommentsService(object):
             try:
 
                 for item in video_comment_threads["items"]:
-
-                    #comment = item["snippet"]["topLevelComment"]
-                    #author = comment["snippet"]["authorDisplayName"]
-                    #text = comment["snippet"]["textDisplay"]
-                    #print "Comment by %s: %s" % (author, text)
 
                     comments_count += 1
                     #print "\tComments #%s\tID: %s\tPublished At: %s" % (comments_count, item['id'], item["snippet"]["topLevelComment"]["snippet"]["publishedAt"])

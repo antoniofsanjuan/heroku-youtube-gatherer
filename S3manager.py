@@ -11,26 +11,17 @@ from boto.s3.key import Key
 class S3manager():
 
     _bucket = None
-    AWS_ACCESS_KEY_ID = 'AKIAJC6RUE5GKMNXVXEA'
-    AWS_SECRET_ACCESS_KEY = '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'
-
-    _bucket = None
     _bucket_name = None
     _conn = None
 
     def __init__(self):
-        AWS_ACCESS_KEY_ID = 'AKIAJC6RUE5GKMNXVXEA'
-        AWS_SECRET_ACCESS_KEY = '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'
 
         #self._bucket_name = self.AWS_ACCESS_KEY_ID.lower() + '-' + 'heroku-ytg'
         self._bucket_name = 'heroku-ytg-v2'
-        self._conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        #self._conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        self._conn = boto.connect_s3()
 
         # self._conn = boto.connect_s3() This way get the ID and pass from default user folder "~/.aws/credentials" file
-
-        allBuckets = self._conn.get_all_buckets()
-        for bucket in allBuckets:
-           print(str(bucket.name))
 
         try:
             if (self._conn is not None):
