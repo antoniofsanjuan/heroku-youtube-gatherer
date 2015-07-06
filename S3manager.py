@@ -36,21 +36,22 @@ class S3manager():
                 exit(1)
 
 
-    def uploadFile(self, path_filename):
+    def uploadFile(self, path_orig, path_dest):
 
         print 'Uploading %s to Amazon S3 bucket %s' % \
-               (path_filename, self._bucket_name)
+               (path_orig, self._bucket_name)
 
         try:
-            path, filename = os.path.split(path_filename)
+            path, filename = os.path.split(path_orig)
 
-            print "\tPath: %s; filename: %s" % (path, filename)
+            print "\tPath orig: %s; filename orig: %s" % (path, filename)
 
-            k = self._bucket.new_key(filename)
-            k.set_contents_from_filename(path_filename, cb=self.percent_cb, num_cb=10)
+            k = self._bucket.new_key(path_dest)
+            k.set_contents_from_filename(path_orig, cb=self.percent_cb, num_cb=10)
 
         except Exception as e:
             print "Exception uploading file '%s' to S3" % path_filename
+            print "Message: %s" % e.message
             return 1
 
         return True
