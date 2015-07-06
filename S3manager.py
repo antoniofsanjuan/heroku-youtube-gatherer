@@ -38,11 +38,13 @@ class S3manager():
 
     def uploadFile(self, path_filename):
 
-        #print 'Uploading %s to Amazon S3 bucket %s' % \
-        #       (path_filename, self._bucket_name)
+        print 'Uploading %s to Amazon S3 bucket %s' % \
+               (path_filename, self._bucket_name)
 
         try:
             path, filename = os.path.split(path_filename)
+
+            print "\tPath: %s; filename: %s" % (path, filename)
 
             k = self._bucket.new_key(filename)
             k.set_contents_from_filename(path_filename, cb=self.percent_cb, num_cb=10)
