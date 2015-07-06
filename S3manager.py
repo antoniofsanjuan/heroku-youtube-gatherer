@@ -19,10 +19,12 @@ class S3manager():
     _conn = None
 
     def __init__(self):
+        AWS_ACCESS_KEY_ID = 'AKIAJC6RUE5GKMNXVXEA'
+        AWS_SECRET_ACCESS_KEY = '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'
 
         #self._bucket_name = self.AWS_ACCESS_KEY_ID.lower() + '-' + 'heroku-ytg'
         self._bucket_name = 'heroku-ytg-v2'
-        self._conn = boto.connect_s3()
+        self._conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 
         # self._conn = boto.connect_s3() This way get the ID and pass from default user folder "~/.aws/credentials" file
 
@@ -53,6 +55,20 @@ class S3manager():
 
             k = self._bucket.new_key(filename)
             k.set_contents_from_filename(path_filename, cb=self.percent_cb, num_cb=10)
+
+        except Exception as e:
+            print "Exception uploading file '%s' to S3" % path_filename
+            return 1
+
+        return True
+
+
+    def createFolder(self, folder_name):
+
+        try:
+
+            k = self._bucket.new_key(folder_name + '/')
+            k.set_contents_from_string('')
 
         except Exception as e:
             print "Exception uploading file '%s' to S3" % path_filename
