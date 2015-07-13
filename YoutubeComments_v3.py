@@ -19,6 +19,8 @@ class GoogleCommentsService(object):
     _COMMENTS_COUNT = 0
     _TEXT_CHARSET = 'utf-8'
 
+    _FS = ';' # Field Separator
+
     def __init__(self, argv):
         print ""
 
@@ -31,7 +33,7 @@ class GoogleCommentsService(object):
 
     def printCSVYoutubeComment(self, json_comment, video_id, gp_likes_activity):
 
-        csv_format_string = "%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
+        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s\n"
 
         #print "\nprintCSVYoutubeComment() - INIT"
 
@@ -100,7 +102,7 @@ class GoogleCommentsService(object):
 
         #print 'DEBUG: printCSVGooglePlusComment() - INIT'
 
-        csv_format_string = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
+        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s\n"
         arr_gp_comment_fields = gp_service.getArrayGooglePlusCommentFields(gp_comment)
 
         htmlParser = HTMLParser.HTMLParser()
@@ -165,10 +167,10 @@ class GoogleCommentsService(object):
     # Call the API's commentThreads.list method to list the existing comment threads.
     def get_comment_threads(self, yt_service, video_id, next_page):
 
-        print "get_comment_threads(): video_id = %s\n" % video_id
+        #print "get_comment_threads(): video_id = %s\n" % video_id
 
         if next_page is None:
-            print "get_comment_threads(): \tnext_page IS NONE"
+            #print "get_comment_threads(): \tnext_page IS NONE"
             results = yt_service.commentThreads().list(
                 part='id,snippet',
                 videoId=video_id,
@@ -178,7 +180,7 @@ class GoogleCommentsService(object):
                 key='usKbvXnvKS9XA377cncN0oZJ'
             ).execute()
         else:
-            print "get_comment_threads(): \tnext_page IS:%s" % next_page
+            #print "get_comment_threads(): \tnext_page IS:%s" % next_page
             results = yt_service.commentThreads().list(
                 part='id,snippet',
                 videoId=video_id,
@@ -222,7 +224,7 @@ class GoogleCommentsService(object):
     # Retrieves comments from a specific video comment thread
     def comments_generator(self, yt_service, video_id):
 
-        print "comments_generator: *** INIT ***"
+        #print "comments_generator: *** INIT ***"
 
         retries_counter = 3
 
@@ -245,7 +247,7 @@ class GoogleCommentsService(object):
                 if next_page is None or next_page == "":
                     video_comment_threads = None
                 else:
-                    print "Comments count=%s" % comments_count
+                    #print "Comments count=%s" % comments_count
                     video_comment_threads = self.get_comment_threads(yt_service, video_id, next_page)
 
             except gdata.service.RequestError, request_error:

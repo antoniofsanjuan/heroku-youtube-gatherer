@@ -42,6 +42,8 @@ from apiclient import sample_tools
 
 class GooglePlusService(object):
 
+    _FS = ';' # Field Separator
+
     def getGooglePlusActitivyInfo(self, activity_id):
 
         num_retries = 3
@@ -101,7 +103,7 @@ class GooglePlusService(object):
             dt_published = comment['published']
             num_replies = comment['plusoners']['totalItems']
 
-            return "%s\t%s\t%s\t%s\t%s\n" % (id_comment, author, content, dt_published, num_replies)
+            return "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s\n" % (id_comment, author, content, dt_published, num_replies)
 
     def getArrayGooglePlusCommentFields(self, comment):
 
@@ -218,7 +220,7 @@ class GooglePlusService(object):
 
 
     def __init__(self, argv):
-        print "G+: __INIT(2)__"
+        print "G+: ____INIT____"
         # Authenticate and construct service.
         self._gp_service = None
         self._flags = None
