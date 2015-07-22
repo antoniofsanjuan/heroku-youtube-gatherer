@@ -766,7 +766,7 @@ def main(argv):
         for video in arr_videos:
             video_id = video['id']
             printLog("Processing video with id: '%s' and total comments: %s\n" % ( video_id, video['statistics']['commentCount'] ))
-            print "Processing video with id: '%s' and total comments: %s\n" % ( video_id, video['statistics']['commentCount'] )
+            print "Processing video with id: '%s' and total comments: %s" % ( video_id, video['statistics']['commentCount'] )
 
             channel_id = video['snippet']['channelId']
 
@@ -793,13 +793,16 @@ def main(argv):
 
             printLog("\n")
 
-            printLog("\nRetrieving \"Comments\" from Youtube...\n")
-            print "Retrieving comments from Youtube..."
+            printLog("\tRetrieving comments from Youtube...\n")
+            print "\tRetrieving comments from Youtube..."
 
-            if not _b_avoid_ddbb:
-                queue = Queue(1)   # used to communicate progress to the thread
-                event = Event()    # used to tell the thread when to finish
-                progress = 0
+            progress = 0
+            queue = None   # used to communicate progress to the thread
+            event = None    # used to tell the thread when to finish
+
+            if not _b_avoid_progressbar:
+                queue = Queue(1)
+                event = Event()
                 _progress_bar = Thread(target=print_progress, args=(queue, event))
                 _progress_bar.start()
 
@@ -863,14 +866,17 @@ def main(argv):
                 printLogTime("", False)
                 # End For comments Loop
 
-                progress = math.ceil( ((yt_count + gp_count) * 100) / total_comments )
 
                 if not _b_avoid_progressbar:
+                    progress = math.ceil( ((yt_count + gp_count) * 100) / total_comments )
                     queue.put( min(progress, 100) )
-                    # reached 100%; kill the thread and exit
-                    event.set()
-                    _progress_bar.join()
-                    print ""
+
+
+            if not _b_avoid_progressbar:
+                # reached 100%; kill the thread and exit
+                event.set()
+                _progress_bar.join()
+                print "\n"
 
 
         _COMMENNTS_COUNT = yt_count + gp_count

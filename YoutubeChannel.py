@@ -32,8 +32,9 @@ class YoutubeChannel():
         self._youtube = build(self.YOUTUBE_API_SERVICE_NAME, self.YOUTUBE_API_VERSION,
                               developerKey=self.DEVELOPER_KEY)
 
+
     def printCSVYoutubeChannelInfo(self, channel_id, record):
-        csv_format_string = "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s\n"
+        csv_format_string = "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s"  + self._FS + self._FS + "%s\n"
 
         str_title = record["snippet"]["title"]
         str_viewCount = record["statistics"]["viewCount"]
@@ -41,7 +42,10 @@ class YoutubeChannel():
         str_subscriberCount = record["statistics"]["subscriberCount"]
         str_hiddenSubscriberCount = 0 if str(record["statistics"]["hiddenSubscriberCount"]).upper() == "false".upper() else 1
         str_videoCount = record["statistics"]["videoCount"]
-        
+
+        ts = time.time()
+        str_stored_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
         ''' # Uncomment to Debug
         print "Channel Title: %s" % record["snippet"]["title"]
         print "Channel viewCount: %s" % record["statistics"]["viewCount"]
@@ -52,7 +56,7 @@ class YoutubeChannel():
         '''
 
         return csv_format_string % (channel_id, str_title, str_viewCount, str_commentCount,
-                                    str_subscriberCount, str_hiddenSubscriberCount, str_videoCount)
+                                    str_subscriberCount, str_hiddenSubscriberCount, str_videoCount, str_stored_timestamp)
 
     def printChannelInfo2CSVFile(self, channel_id, record, csv_file):
 

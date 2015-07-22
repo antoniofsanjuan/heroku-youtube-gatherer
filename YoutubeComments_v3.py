@@ -33,7 +33,7 @@ class GoogleCommentsService(object):
 
     def printCSVYoutubeComment(self, json_comment, video_id, gp_likes_activity):
 
-        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s\n"
+        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s\n"
 
         #print "\nprintCSVYoutubeComment() - INIT"
 
@@ -85,6 +85,9 @@ class GoogleCommentsService(object):
         gp_likes_activity = gp_likes_activity.decode("utf-8") if isinstance(gp_likes_activity, str) else unicode(gp_likes_activity)
         video_id = video_id.decode("utf-8") if isinstance(video_id, str) else unicode(video_id)
 
+        ts = time.time()
+        str_stored_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
         ''' # Uncomento to Debug
         print "yt_comment_id: %s" % yt_comment_id
         print "yt_author_name: %s" % yt_author_name
@@ -96,13 +99,13 @@ class GoogleCommentsService(object):
         '''
 
         return csv_format_string % (yt_comment_id, yt_author_name, yt_content,
-                                    self.formatYoutubeDate(yt_published), yt_reply_count, gp_likes_activity, video_id)
+                                    self.formatYoutubeDate(yt_published), str_stored_timestamp, yt_reply_count, gp_likes_activity, video_id)
 
     def printCSVGooglePlusComment(self, gp_service, gp_comment, yt_comment_id, num_replies, video_id):
 
         #print 'DEBUG: printCSVGooglePlusComment() - INIT'
 
-        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s\n"
+        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s \n"
         arr_gp_comment_fields = gp_service.getArrayGooglePlusCommentFields(gp_comment)
 
         htmlParser = HTMLParser.HTMLParser()
@@ -112,8 +115,11 @@ class GoogleCommentsService(object):
 
         gp_author = arr_gp_comment_fields[1].decode("utf-8") if isinstance(arr_gp_comment_fields[1], str) else unicode(arr_gp_comment_fields[1])
 
-        return csv_format_string % (arr_gp_comment_fields[0], gp_author,
-                                    parsed_comment_body, formatted_published_time, arr_gp_comment_fields[4],
+        ts = time.time()
+        str_stored_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
+        return csv_format_string % (arr_gp_comment_fields[0], gp_author, parsed_comment_body,
+                                    formatted_published_time, str_stored_timestamp, arr_gp_comment_fields[4],
                                     yt_comment_id, num_replies, video_id)
 
     def executeLoadInBD(self, query):

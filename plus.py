@@ -81,11 +81,13 @@ class GooglePlusService(object):
               print '\t\t%s: %s' % (comment['actor']['displayName'],comment['object']['content'])
               print '\t\tG+ Likes: %d' % comment['plusoners']['totalItems']
 
+
     def printGooglePlusComment(self, comment):
         if comment is not None:
           print '\t\tG+ Comment ID: %s' % comment['id']
           print '\t\t%s: %s' % (comment['actor']['displayName'],comment['object']['content'])
           print '\t\tG+ Likes: %d' % comment['plusoners']['totalItems']
+
 
     def printCSVGooglePlusComment(self, comment):
 
