@@ -255,12 +255,12 @@ class GoogleCommentsService(object):
         #            print "********** STATUS ERROR: %s **********" % request_error[0]['status']
         #            print "****************************************************\n"
         #
-        #            if retries_counter > 0:
-        #                retries_counter -= 1
+                    if retries_counter > 0:
+                        retries_counter -= 1
         #                ''' Uncomment to debug
         #                print "Retrying extraction from index of comments [%s]..." % comments_count
         #                '''
-                        next_page = video_comment_threads['nextPageToken']
+                    next_page = video_comment_threads['nextPageToken']
         #                ''' Uncomment to debug
         #                print "URL: %s" % url
         #                '''

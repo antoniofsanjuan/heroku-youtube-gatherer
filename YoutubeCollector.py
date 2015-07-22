@@ -70,6 +70,7 @@ _to = None
 _b_avoid_ddbb = True
 _load_files_to_s3 = False
 _get_files_from_s3 = False
+_b_avoid_progressbar = False
 _timeStamp = None
 
 _DIR_LOG = "LOGS"
@@ -469,7 +470,7 @@ def main(argv):
     #exit(0)
 
     try:
-        opts, args = getopt.getopt(argv[1:], 'hmf:', ['help', 'mode=', 'from', 'db', 's3', 's3-get'])
+        opts, args = getopt.getopt(argv[1:], 'hmf:', ['help', 'mode=', 'from', 'db', 's3', 's3-get', 'noprogress'])
         if not opts:
             print 'No options supplied'
             #usage()
@@ -504,9 +505,12 @@ def main(argv):
         elif opt in ('--s3'): # If parameter set, upload data files to Amazon S3
             global _load_files_to_s3
             _load_files_to_s3 = True
-        elif opt in ('--s3-get'): # If parameter set, daownload data files from Amazon S3 to local
+        elif opt in ('--s3-get'): # If parameter set, download data files from Amazon S3 to local
             global _get_files_from_s3
             _get_files_from_s3 = True
+        elif opt in ('--noprogress'): # If parameter set, no progress bar will be show
+            global _b_avoid_progressbar
+            _b_avoid_progressbar = True
 
 
     argv = []
@@ -792,16 +796,14 @@ def main(argv):
             printLog("\nRetrieving \"Comments\" from Youtube...\n")
             print "Retrieving comments from Youtube..."
 
-            #yt_comments_service.comments_generator(yt_service, video_id)
-            ###bar = Bar('Loading', fill='@', suffix='%(percent)d%%')
-
-            queue = Queue(1)   # used to communicate progress to the thread
-            event = Event()    # used to tell the thread when to finish
-            progress = 0
-            _progress_bar = Thread(target=print_progress, args=(queue, event))
+            if not _b_avoid_ddbb:
+                queue = Queue(1)   # used to communicate progress to the thread
+                event = Event()    # used to tell the thread when to finish
+                progress = 0
+                _progress_bar = Thread(target=print_progress, args=(queue, event))
+                _progress_bar.start()
 
             total_comments = int(video['statistics']['commentCount'])
-            _progress_bar.start()
 
             for item in yt_comments_service.comments_generator(yt_service, video_id):
 
@@ -830,7 +832,7 @@ def main(argv):
 
                 if reply_count > 0:
                     # Retriving Likes for the global activity
-                    gp_comment_activity_likes = gp_service.getActivityById(comment_id)
+                    ###gp_comment_activity_likes = gp_service.getActivityById(comment_id)
                     printLog("\n\tRetrieving \"G+ Comments\" from G+ Social Network...")
 
                     # Retriving all comments and fields, then write them down to the G+ file
@@ -862,12 +864,13 @@ def main(argv):
                 # End For comments Loop
 
                 progress = math.ceil( ((yt_count + gp_count) * 100) / total_comments )
-                queue.put( min(progress, 100) )
 
-            # reached 100%; kill the thread and exit
-            event.set()
-            _progress_bar.join()
-            print ""
+                if not _b_avoid_progressbar:
+                    queue.put( min(progress, 100) )
+                    # reached 100%; kill the thread and exit
+                    event.set()
+                    _progress_bar.join()
+                    print ""
 
 
         _COMMENNTS_COUNT = yt_count + gp_count
