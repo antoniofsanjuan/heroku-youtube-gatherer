@@ -131,17 +131,53 @@ class GooglePlusService(object):
 
     def googlePlusActitivyInfoGenerator(self, activity_id):
 
-        #print 'DEBUG: googlePlusActitivyInfoGenerator() - activity_id: %s' % activity_id
+        #print '\nDEBUG: googlePlusActitivyInfoGenerator() - activity_id: %s' % activity_id
+
+        comments_resource = None
+        comments_document = None
 
         retries_counter = 3
+        retries_counter_first = 3
         nextPageToken = None
+        b_finish = False
 
-        try:
-            comments_resource = self._gp_service.comments()
-            comments_document = comments_resource.list(maxResults=500, activityId=activity_id).execute()
+        while retries_counter_first > 0 and comments_document is None:
+            try:
+                #print "Primera recuperacion de comentarios"
+                comments_resource = self._gp_service.comments()
+                comments_document = comments_resource.list(maxResults=500, activityId=activity_id).execute()
 
-            while comments_document is not None:
+            except Exception as e:
 
+                retries_counter_first -= 1
+                print "\nException: Trying to get G+ comments first time."
+                continue
+
+
+        while retries_counter > 0 and not b_finish:
+
+            #print "Dentro del bucle. retries_counter: %s  --- b_finish: %s" % (retries_counter, b_finish)
+            try:
+                # If None, we had an exception. We need to retry from last page +1 of comments
+                if comments_document is None:
+
+                    # Getting the last page processed
+                    comments_document = comments_resource.list(maxResults=500,
+                                                               activityId=activity_id,
+                                                               pageToken=nextPageToken
+                    ).execute()
+
+                    # Getting the NEXT page to continue the process
+                    if 'nextPageToken' in comments_document:
+                        nextPageToken = comments_document['nextPageToken']
+
+                        comments_document = comments_resource.list(maxResults=500,
+                                                                   activityId=activity_id,
+                                                                   pageToken=nextPageToken
+                        ).execute()
+
+
+                #print "Recuperando comentarios en bucle"
                 if 'items' in comments_document:
                     for comment in comments_document['items']:
                         yield comment
@@ -151,22 +187,30 @@ class GooglePlusService(object):
 
                     if nextPageToken is None or nextPageToken == "":
                         comments_document = None
+                        b_finish = True
                     else:
-                        comments_resource.list(maxResults=500,
-                                               activityId=activity_id,
-                                               pageToken=nextPageToken
+                        comments_document = comments_resource.list(maxResults=500,
+                                                                   activityId=activity_id,
+                                                                   pageToken=nextPageToken
                         ).execute()
 
-        except Exception as e:
+                    # Reset counter on each succesfull retrieve
+                    retries_counter = 3
 
-            #print "\n****************************************************"
-            #print "********** STATUS ERROR: %s **********" % request_error[0]['status']
-            #print "****************************************************\n"
+            except Exception as e:
 
-            if retries_counter > 0:
+                #print "\n****************************************************"
+                #print "********** STATUS ERROR: %s **********" % request_error[0]['status']
+                #print "****************************************************\n"
+                print "\nException: Trying to get next page of G+ comments."
+
                 retries_counter -= 1
 
-            nextPageToken = comments_document['nextPageToken']
+                # We only can continue if we have the nextPageToken value
+                if nextPageToken is not None and nextPageToken != "":
+                    continue
+                else:
+                    print "\nException: We can't continue. We don't have the next page token."
 
 
     def getActivityById(self, comment_id):

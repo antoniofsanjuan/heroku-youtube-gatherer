@@ -107,12 +107,6 @@ _query_insert_yt_social_shares_regex = """LOAD DATA LOCAL INFILE '%s' IGNORE
                                        INTO TABLE YT_SOCIAL_SHARES FIELDS TERMINATED BY '\\t'
                                        OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\\n' """
 
-#_yt_csv_file_path = "g:\\\TFC\\\DATA\\\yt_comments_%s.csv"
-#_gp_csv_file_path = "g:\\\TFC\\\DATA\\\gp_comments_%s.csv"
-#_yt_videos_csv_file_path = "g:\\\TFC\\\DATA\\\yt_videos_%s.csv"
-#_yt_channels_csv_file_path = "g:\\\TFC\\\DATA\\\yt_channel_%s.csv"
-#_yt_social_csv_file_path = "g:\\\TFC\\\DATA\\\yt_social_%s.csv"
-
 _yt_csv_file_path = None
 _gp_csv_file_path = None
 _yt_videos_csv_file_path = None
@@ -169,11 +163,14 @@ def printLogTime(msg, b_time):
     try:
         if(b_time):
             _file_log.write('[%s]: %s\n' % (date_sec, msg))
+            _file_log.flush()
         else:
             _file_log.write('%s\n' % msg)
+            _file_log.flush()
     except UnicodeDecodeError:
         #print("--------------> Caracter no reconocido. Seguimos...")
         _file_log.write('%s\n' % msg.decode('utf-8'))
+        _file_log.flush()
         sys.exc_clear()
 
 def printCommentsFile(msg):
@@ -435,8 +432,9 @@ def print_progress(q, e):
         if e.is_set():
             # if our event is set, break out of the infinite loop and
             # prepare to terminate this thread
-
+            print "Event has been setted!"
             sys.stdout.write('\r\t[%s] %s%%' % (('#' * int(p / 2)).ljust(50, ' '), 100))
+            sys.stdout.flush()
             break
 
         while not q.full():
@@ -575,7 +573,7 @@ def main(argv):
     #TODO: Cambiar el load por otra forma en la que se puedan cargar en remoto de forma rapida
 
     ts = time.time()
-    today = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+    today = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H%M')
 
     _yt_csv_file_path = _yt_csv_file_path_regex % today
     _gp_csv_file_path = _gp_csv_file_path_regex % today
@@ -760,13 +758,12 @@ def main(argv):
 
 
 
-
         yt_count = 0
         gp_count = 0
         for video in arr_videos:
             video_id = video['id']
-            printLog("Processing video with id: '%s' and total comments: %s\n" % ( video_id, video['statistics']['commentCount'] ))
-            print "Processing video with id: '%s' and total comments: %s" % ( video_id, video['statistics']['commentCount'] )
+            printLog("Processing video with id: '%s' and total comments (approx.): %s\n" % ( video_id, video['statistics']['commentCount'] ))
+            print "\nProcessing video with id: '%s' and total comments: %s (approx.)" % ( video_id, video['statistics']['commentCount'] )
 
             channel_id = video['snippet']['channelId']
 
@@ -797,7 +794,7 @@ def main(argv):
             print "\tRetrieving comments from Youtube..."
 
             progress = 0
-            queue = None   # used to communicate progress to the thread
+            queue = None    # used to communicate progress to the thread
             event = None    # used to tell the thread when to finish
 
             if not _b_avoid_progressbar:
@@ -825,8 +822,12 @@ def main(argv):
                 #print "\tDEBUG: reply_count = %s" % reply_count
 
                 try:
-
-                    _yt_csv_file.write(yt_comments_service.printCSVYoutubeComment(item, video_id, likes))
+                    printLogTime("Antes de construir linea a fichero utf-8:", True)
+                    aux = yt_comments_service.printCSVYoutubeComment(item, video_id, likes)
+                    printLogTime("\tLinea: %s" % aux, True)
+                    _yt_csv_file.write(aux)
+                    _yt_csv_file.flush()
+                    printLogTime("Nueva linea en fichero escrita. YT Count: %s" % yt_count, True)
 
                 except:
                     printLogTime("ERROR: Error writing Youtube comment to file.\nException: %s" % sys.exc_info()[0], True)
@@ -846,37 +847,31 @@ def main(argv):
                         printLogTime("\t\tG+_Author:%s" % gp_comment['actor']['displayName'], False)
                         #print("Comment: %s" % gp_comment['object']['content'])
                         printLogTime("\t\t\t%s" % gp_comment['object']['content'], False)
+                        printLogTime("G+ Count: %s" % gp_count, False)
 
                         try:
                             _gp_csv_file.write(yt_comments_service.printCSVGooglePlusComment(gp_service, gp_comment, comment_id,
                                                                                         reply_count, video_id))
+                            _gp_csv_file.flush()
                         except:
                             printLogTime("ERROR: Error writing G+ comment to file.\nException: %s" % sys.exc_info()[0], True)
                             pass
 
                         # End For gp_comments Loop
-                else:
-
-                    try:
-                        _yt_csv_file.write(yt_comments_service.printCSVYoutubeComment(comment, video_id, 0))
-                    except:
-                        printLogTime("ERROR: Error writing Youtube comment to file.\nException: %s" % sys.exc_info()[0], True)
-                        pass
 
                 printLogTime("", False)
-                # End For comments Loop
-
 
                 if not _b_avoid_progressbar:
                     progress = math.ceil( ((yt_count + gp_count) * 100) / total_comments )
                     queue.put( min(progress, 100) )
 
+                # End For comments Loop
 
             if not _b_avoid_progressbar:
                 # reached 100%; kill the thread and exit
                 event.set()
-                _progress_bar.join()
-                print "\n"
+                #_progress_bar.join(5)
+                #_progress_bar._Thread__stop()
 
 
         _COMMENNTS_COUNT = yt_count + gp_count
@@ -954,6 +949,7 @@ def main(argv):
 
     _file_log.close()
 
+    sys.exit(0)
 
 if __name__ == '__main__':
     main(sys.argv)
