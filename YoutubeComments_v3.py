@@ -13,7 +13,7 @@ import datetime
 import HTMLParser
 import MySQLdb
 
-import chardet
+#import chardet
 
 class GoogleCommentsService(object):
 
