@@ -107,9 +107,14 @@ class GoogleCommentsService(object):
         #print "\tyt_content without BOM: %s" % yt_content
 
         # Remove double quotes because couse problems with comment delimiters
-        yt_content = yt_content.replace('"', '')
-        #print "4"
+        #yt_content = yt_content.replace('"', '')
+
+        # Escaping double-quotes and double-quoting the text
+        yt_content = yt_content.replace('"', '\\"')
         yt_content = '"%s"' % yt_content
+
+        yt_author_name = yt_author_name.replace('"', '\\"')
+        yt_author_name = '"%s"' % yt_author_name
 
         #print "yt_content: %s" % yt_content
 
@@ -127,10 +132,10 @@ class GoogleCommentsService(object):
             yt_author_name_decoded = self.force_decode(yt_author_name)
             #print "yt_author_name_decoded: %s" % yt_author_name_decoded
             yt_author_name = yt_author_name_decoded
+
         except Exception as e:
             print "No se puede codificar en 'utf8' el nombre de autor: %s\n" % yt_author_name
             print "Excepcion:\n%s" % e
-
 
         try:
             #chardet_encode = chardet.detect(yt_content)['encoding']
@@ -200,11 +205,20 @@ class GoogleCommentsService(object):
         #htmlParser = HTMLParser.HTMLParser()
 
         formatted_published_time = self.formatYoutubeDate(arr_gp_comment_fields[3])
-        #parsed_comment_body = htmlParser.unescape(arr_gp_comment_fields[2])
+
+        #parsed_comment_body_html = htmlParser.unescape(arr_gp_comment_fields[2])
         parsed_comment_body = self.force_decode(arr_gp_comment_fields[2])
+        #print "parsed_comment_body: %s" % parsed_comment_body
+
+        parsed_comment_body = parsed_comment_body[1:]
+        parsed_comment_body = parsed_comment_body[:-1]
+        parsed_comment_body = parsed_comment_body.replace('\"', '\\"')
+        parsed_comment_body = '"' + parsed_comment_body + '"'
+        #print "parsed_comment_body Final: %s" % parsed_comment_body
 
         ###gp_author = arr_gp_comment_fields[1].decode("utf-8") if isinstance(arr_gp_comment_fields[1], str) else unicode(arr_gp_comment_fields[1])
         gp_author = self.force_decode(arr_gp_comment_fields[1])
+        gp_author = gp_author.replace('\"', '\\"')
 
         ts = time.time()
         str_stored_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
