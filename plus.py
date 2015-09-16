@@ -202,16 +202,13 @@ class GooglePlusService(object):
                 #print "\n****************************************************"
                 #print "********** STATUS ERROR: %s **********" % request_error[0]['status']
                 #print "****************************************************\n"
-                print "\nException: Trying to get next page of G+ comments."
+                #print "\nException: Trying to get next page of G+ comments."
 
                 retries_counter -= 1
 
                 # We only can continue if we have the nextPageToken value
                 if nextPageToken is not None and nextPageToken != "":
                     continue
-                else:
-                    print "\nException: We can't continue. We don't have the next page token."
-
 
     def getActivityById(self, comment_id):
 

@@ -3,17 +3,12 @@
 
 __author__ = 'antoniofsanjuan'
 
-from mysql.connector import errorcode
-
 import gdata.service
 
-import mysql.connector
 import time
 import datetime
 import HTMLParser
-import MySQLdb
 
-#import chardet
 
 class GoogleCommentsService(object):
 
@@ -120,7 +115,7 @@ class GoogleCommentsService(object):
 
         ### KEY POINT: Check 1 per 1 field if string codification is Unicode or String. Convert them if necessary
         ### Python is not able to concatenate string in different codifications
-        #yt_content = yt_content.decode("utf-8") if isinstance(yt_content, str) else unicode(yt_content)
+        yt_content = yt_content.decode("utf-8") if isinstance(yt_content, str) else unicode(yt_content)
         yt_comment_id = yt_comment_id.decode("utf-8") if isinstance(yt_comment_id, str) else unicode(yt_comment_id)
 
         #yt_author_name = yt_author_name.decode("utf-8") if isinstance(yt_author_name, str) else unicode(yt_author_name)
@@ -226,53 +221,6 @@ class GoogleCommentsService(object):
         return csv_format_string % (arr_gp_comment_fields[0], gp_author, parsed_comment_body,
                                     formatted_published_time, str_stored_timestamp, arr_gp_comment_fields[4],
                                     yt_comment_id, num_replies, video_id)
-
-    def executeLoadInBD(self, query):
-        try:
-
-            yt_conn = MySQLdb.connect('127.0.0.1', 'root', 'cc1251', 'youtube')
-            #print "\nConexion con mysql establecida"
-            yt_cursor = yt_conn.cursor()
-
-            yt_cursor.execute(query)
-
-            yt_conn.commit()
-
-            # Uncomment to Debug
-            total = long(str(vars(yt_cursor)['_info']).split(':')[1].strip(' ').split(' ')[0])
-            skipped = long(str(vars(yt_cursor)['_info']).split(':')[3].strip(' ').split(' ')[0])
-
-            print "********************************************************"
-            # print vars(yt_cursor)
-            print "Query: %s" % vars(yt_cursor)['_executed']
-            print "Result: %s" % vars(yt_cursor)['_info']
-            print "Loaded: %s" % str(total - skipped)
-            print "********************************************************"
-
-
-            yt_cursor.close()
-            yt_conn.close()
-
-        except (KeyboardInterrupt, SystemExit):
-            yt_conn.rollback()
-            yt_cursor.close()
-            yt_conn.close()
-            print "\nRolling back database changes..."
-            print "\n\nShutting down youtube-gatherer..."
-            raise
-
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("*** ERROR ***: Something is wrong with your user name or password")
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("*** ERROR ***: Database does not exists")
-            elif err.errno == errorcode.CR_CONN_HOST_ERROR:
-                print("*** ERROR ***: Database is not running")
-            else:
-                print(err)
-
-            if yt_conn is not None:
-                yt_conn.close()
 
 
     # Call the API's commentThreads.list method to list the existing comment threads.
@@ -389,6 +337,7 @@ class GoogleCommentsService(object):
                     if retries_counter > 0:
                         retries_counter -= 1
         #                ''' Uncomment to debug
+
                         #print "Retrying extraction from index of comments [%s]..." % comments_count
         #                '''
                     next_page = video_comment_threads['nextPageToken']
