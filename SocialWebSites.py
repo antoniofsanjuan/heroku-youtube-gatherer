@@ -22,7 +22,7 @@ class SocialWebSitesService():
 
                 # this takes a python object and dumps it to a string which is a JSON
                 # representation of that object
-                data = json.load(urllib2.urlopen(url, timeout=3))
+                data = json.load(urllib2.urlopen(url, timeout=5))
 
                 try:
                     result = data['shares']
@@ -39,7 +39,7 @@ class SocialWebSitesService():
 
     def getTwitterLinkSharedCount(self, video_url):
 
-        url = "http://cdn.api.twitter.com/1/urls/count.json?url=%s" % video_url
+        url = "https://cdn.api.twitter.com/1/urls/count.json?url=%s" % video_url
 
         result = -1
         retries_count = 3
@@ -48,7 +48,7 @@ class SocialWebSitesService():
 
                 # this takes a python object and dumps it to a string which is a JSON
                 # representation of that object
-                data = json.load(urllib2.urlopen(url, timeout=3))
+                data = json.load(urllib2.urlopen(url, timeout=5))
 
                 try:
                     result = data['count']
@@ -75,7 +75,7 @@ class SocialWebSitesService():
 
                 # this takes a python object and dumps it to a string which is a JSON
                 # representation of that object
-                data = json.load(urllib2.urlopen(url, timeout=3))
+                data = json.load(urllib2.urlopen(url, timeout=5))
 
                 try:
                     result = data['count']
