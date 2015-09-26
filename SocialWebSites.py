@@ -31,7 +31,7 @@ class SocialWebSitesService():
                     result = -1
 
             except Exception as e:
-                print "Facebook: Something wrong with the remote server [retry:%s]" % retries_count
+                print "Facebook: Something wrong with the remote server [retry:%s]" % (4 - retries_count)
                 retries_count -= 1
                 continue
 
@@ -57,7 +57,7 @@ class SocialWebSitesService():
                     result = -1
 
             except Exception as e:
-                print "Twitter: Something wrong with the remote server [retry:%s]" % retries_count
+                print "Twitter: Something wrong with the remote server [retry:%s]" % (4 - retries_count)
                 retries_count -= 1
                 time.sleep(3)
                 continue
@@ -84,7 +84,7 @@ class SocialWebSitesService():
                     result = -1
 
             except Exception as e:
-                print "Linkedin: Something wrong with the remote server [retry:%s]" % retries_count
+                print "Linkedin: Something wrong with the remote server [retry:%s]" % (4 - retries_count)
                 retries_count -= 1
                 time.sleep(3)
                 continue

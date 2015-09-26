@@ -799,9 +799,12 @@ def main(argv):
 
         yt_count = 0
         gp_count = 0
+
+        printLog("\nDownloading video's data:")
+        print "\nDownloading video's data:"
         for video in arr_videos:
             video_id = video['id']
-            printLog("Processing video with id: '%s' and total comments (approx.): %s\n" % ( video_id, video['statistics']['commentCount'] ))
+            printLog("\nProcessing video with id: '%s' and total comments (approx.): %s\n" % ( video_id, video['statistics']['commentCount'] ))
             print "\nProcessing video with id: '%s' and total comments: %s (approx.)" % ( video_id, video['statistics']['commentCount'] )
 
             channel_id = video['snippet']['channelId']
@@ -955,6 +958,7 @@ def main(argv):
             arr_files_to_s3.append( _yt_channels_csv_file_path )
             arr_files_to_s3.append( _yt_social_csv_file_path )
 
+            print "\n\nUploading data files to S3 Amazon service:"
             s3_result = s3_service.upload_files(arr_files_to_s3, time_folder)
 
             if s3_result:
