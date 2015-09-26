@@ -10,11 +10,7 @@ import datetime
 import HTMLParser
 
 
-class GoogleCommentsService(object):
-
-    MAX_RESULTS = 40
-    _COMMENTS_COUNT = 0
-    _TEXT_CHARSET = 'utf-8'
+class YoutubeCommentsService(object):
 
     _FS = ';' # Field Separator
 
@@ -68,41 +64,19 @@ class GoogleCommentsService(object):
 
         csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s\n"
 
-        #print "\nprintCSVYoutubeComment() - INIT"
-
         yt_comment = json_comment["snippet"]["topLevelComment"]
 
         author = yt_comment["snippet"]["authorDisplayName"]
-        #print "\tauthor: %s" % author
         text = yt_comment["snippet"]["textDisplay"]
-        #print "\ttext: %s" % text
         likes = yt_comment["snippet"]["likeCount"]
-        #print "\tlikes: %s" % likes
         yt_comment_id = yt_comment["id"]
-        #print "\tyt_comment_id: %s" % yt_comment_id
         yt_published = yt_comment["snippet"]["publishedAt"]
-        #print "\tyt_published: %s" % yt_published
 
         yt_reply_count = int( json_comment["snippet"]['totalReplyCount'] )
-        #print "\tyt_reply_count: %s" % yt_reply_count
 
         yt_author_name = author
-        #print "\tyt_author_name: %s" % yt_author_name
 
-        #print "Text: %s " % text
-        #print "\ttext isInstance of STR? %s; type? %s" % ( isinstance(text, str), type(text) )
-        #### yt_content = text.encode('utf-8')
         yt_content = yt_comment["snippet"]["textDisplay"]
-        #print "2"
-        #print "\tyt_content: %s" % yt_content
-
-        # Remove BOM character
-        #yt_content = yt_content.replace('\xef\xbb\xbf', '')
-        #print "3"
-        #print "\tyt_content without BOM: %s" % yt_content
-
-        # Remove double quotes because couse problems with comment delimiters
-        #yt_content = yt_content.replace('"', '')
 
         # Escaping double-quotes and double-quoting the text
         yt_content = yt_content.replace('"', '\\"')
@@ -111,21 +85,15 @@ class GoogleCommentsService(object):
         yt_author_name = yt_author_name.replace('"', '\\"')
         yt_author_name = '"%s"' % yt_author_name
 
-        #print "yt_content: %s" % yt_content
 
         ### KEY POINT: Check 1 per 1 field if string codification is Unicode or String. Convert them if necessary
         ### Python is not able to concatenate string in different codifications
         yt_content = yt_content.decode("utf-8") if isinstance(yt_content, str) else unicode(yt_content)
         yt_comment_id = yt_comment_id.decode("utf-8") if isinstance(yt_comment_id, str) else unicode(yt_comment_id)
 
-        #yt_author_name = yt_author_name.decode("utf-8") if isinstance(yt_author_name, str) else unicode(yt_author_name)
         try:
-            #chardet_encode = chardet.detect(yt_author_name)['encoding']
-            #print "\nChardet 'yt_author_name' enconding: %s" % chardet_encode
 
-            #print "Force Dectect: %s" % self.detect_encoding(yt_author_name)
             yt_author_name_decoded = self.force_decode(yt_author_name)
-            #print "yt_author_name_decoded: %s" % yt_author_name_decoded
             yt_author_name = yt_author_name_decoded
 
         except Exception as e:
@@ -133,33 +101,15 @@ class GoogleCommentsService(object):
             print "Excepcion:\n%s" % e
 
         try:
-            #chardet_encode = chardet.detect(yt_content)['encoding']
-            #yt_content = yt_content.decode(chardet_encode).encode('utf8')
-            #print "\nChardet enconding: %s" % chardet_encode
-
-            # DEBUG
-            #print "Force Dectect: %s" % self.detect_encoding(yt_content)
-            '''
-            if isinstance(yt_content, str):
-                print "\tisInstance of Str? %s" % isinstance(yt_content, str)
-            elif isinstance(yt_content, unicode):
-                print "\tisInstance of Unicode? %s" % isinstance(yt_content, unicode)
-            '''
 
             # Detect encoding and convert to unicode or leave in unicode format
             if isinstance(yt_content, str):
                 yt_content_decoded = self.force_decode(yt_content)
             else:
-                #yt_content_decoded = unicode(yt_content)
                 yt_content_decoded = yt_content
 
-            #print "\tQuitando BOM..."
-            #print "\tContent: $%s$" % yt_content_decoded
-            #yt_content = yt_content_decoded.replace('\xef\xbb\xbf', '')
             yt_content = yt_content_decoded.encode('utf-8-sig')
             yt_content = yt_content.decode('utf-8-sig')
-            #print "\tBOM eliminado."
-            #print "\tContent w/o BOM: $%s$" % yt_content
 
         except Exception as e:
             print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
@@ -176,60 +126,16 @@ class GoogleCommentsService(object):
         ts = time.time()
         str_stored_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-         # Uncomment to Debug
-        '''
-        print "yt_comment_id: %s" % yt_comment_id
-        print "yt_author_name: %s" % yt_author_name
-        print "yt_content: %s" % yt_content
-        print "yt_published: %s" % self.formatYoutubeDate(yt_published)
-        print "yt_reply_count: %s" % yt_reply_count
-        print "gp_likes_activity: %s" % gp_likes_activity
-        print "video_id: %s" % video_id
-        '''
-
         return csv_format_string % (yt_comment_id, yt_author_name, yt_content,
                                     self.formatYoutubeDate(yt_published), str_stored_timestamp, yt_reply_count, gp_likes_activity, video_id)
 
-    def printCSVGooglePlusComment(self, gp_service, gp_comment, yt_comment_id, num_replies, video_id):
-
-        #print 'DEBUG: printCSVGooglePlusComment() - INIT'
-
-        csv_format_string = "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s"+ self._FS + "%s" + self._FS + "%s" + self._FS + "%s" + self._FS + "%s \n"
-        arr_gp_comment_fields = gp_service.getArrayGooglePlusCommentFields(gp_comment)
-
-        #htmlParser = HTMLParser.HTMLParser()
-
-        formatted_published_time = self.formatYoutubeDate(arr_gp_comment_fields[3])
-
-        #parsed_comment_body_html = htmlParser.unescape(arr_gp_comment_fields[2])
-        parsed_comment_body = self.force_decode(arr_gp_comment_fields[2])
-        #print "parsed_comment_body: %s" % parsed_comment_body
-
-        parsed_comment_body = parsed_comment_body[1:]
-        parsed_comment_body = parsed_comment_body[:-1]
-        parsed_comment_body = parsed_comment_body.replace('\"', '\\"')
-        parsed_comment_body = '"' + parsed_comment_body + '"'
-        #print "parsed_comment_body Final: %s" % parsed_comment_body
-
-        ###gp_author = arr_gp_comment_fields[1].decode("utf-8") if isinstance(arr_gp_comment_fields[1], str) else unicode(arr_gp_comment_fields[1])
-        gp_author = self.force_decode(arr_gp_comment_fields[1])
-        gp_author = gp_author.replace('\"', '\\"')
-
-        ts = time.time()
-        str_stored_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-
-        return csv_format_string % (arr_gp_comment_fields[0], gp_author, parsed_comment_body,
-                                    formatted_published_time, str_stored_timestamp, arr_gp_comment_fields[4],
-                                    yt_comment_id, num_replies, video_id)
 
 
     # Call the API's commentThreads.list method to list the existing comment threads.
     def get_comment_threads(self, yt_service, video_id, next_page):
 
-        #print "get_comment_threads(): video_id = %s\n" % video_id
-
         if next_page is None:
-            #print "get_comment_threads(): \tnext_page IS NONE"
+
             results = yt_service.commentThreads().list(
                 part='id,snippet',
                 videoId=video_id,
@@ -238,8 +144,9 @@ class GoogleCommentsService(object):
                 textFormat='plainText',
                 key='usKbvXnvKS9XA377cncN0oZJ'
             ).execute()
+
         else:
-            #print "get_comment_threads(): \tnext_page IS:%s" % next_page
+
             results = yt_service.commentThreads().list(
                 part='id,snippet',
                 videoId=video_id,
@@ -249,15 +156,6 @@ class GoogleCommentsService(object):
                 pageToken=next_page,
                 key='usKbvXnvKS9XA377cncN0oZJ'
             ).execute()
-
-        ## Uncomment to DEBUG
-        #print "TOTAL: %s" % len(results['items'])
-
-        #for item in results["items"]:
-        #  comment = item["snippet"]["topLevelComment"]
-        #  author = comment["snippet"]["authorDisplayName"]
-        #  text = comment["snippet"]["textDisplay"]
-        #  print "Comment by %s: %s" % (author, text)
 
         return results
 
@@ -272,18 +170,11 @@ class GoogleCommentsService(object):
             key='usKbvXnvKS9XA377cncN0oZJ'
         ).execute()
 
-        #for item in results["items"]:
-        #    author = item["snippet"]["authorDisplayName"]
-        #    text = item["snippet"]["textDisplay"]
-        #    print "Comment by %s: %s" % (author, text)
-
         return results
 
 
     # Retrieves comments from a specific video comment thread
     def comments_generator(self, yt_service, video_id):
-
-        #print "comments_generator: *** INIT ***"
 
         retries_counter = 3
 
@@ -298,35 +189,28 @@ class GoogleCommentsService(object):
                 for item in video_comment_threads["items"]:
 
                     comments_count += 1
-                    #print "\tComments #%s\tID: %s\tPublished At: %s" % (comments_count, item['id'], item["snippet"]["topLevelComment"]["snippet"]["publishedAt"])
                     yield item
 
                 if 'nextPageToken' in video_comment_threads:
                     next_page = video_comment_threads['nextPageToken']
-                    # DEBUG print "\nnext_page[%s]: %s" % (comments_count, next_page)
                 else:
                     # Intentamos recuperar otras 3 veces el nextPageToken por si se hubiera recuperado mal
-                    # DEBUG print "\n*****************************************************\n"
                     num_retries_nextPageToken = 3
                     video_comment_thread_tmp = ""
                     while num_retries_nextPageToken > 0 and 'nextPageToken' not in video_comment_thread_tmp:
-                        # DEBUG print "\tIntentando recuperar de nuevo nextPageToken(%s): %s" % (comments_count, next_page)
                         video_comment_thread_tmp = self.get_comment_threads(yt_service, video_id, next_page)
 
                         if 'nextPageToken' in video_comment_thread_tmp:
                             next_page = video_comment_thread_tmp['nextPageToken']
                             video_comment_threads = video_comment_thread_tmp
-                            # DEBUG print "\t\tEncontrado nuevo pageToken: %s" % next_page
                         else:
                             num_retries_nextPageToken -= 1
                             time.sleep(3)
 
 
                 if next_page is None or next_page == "" or num_retries_nextPageToken == 0:
-                    # DEBUG print "No hemos encontrado next_page por lo que salimos..."
                     video_comment_threads = None
                 else:
-                    # DEBUG print "Hemos entoncontrado next_page, continuamos..."
                     video_comment_threads = self.get_comment_threads(yt_service, video_id, next_page)
 
             except gdata.service.RequestError, request_error:
