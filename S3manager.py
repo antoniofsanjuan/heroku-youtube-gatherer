@@ -11,10 +11,10 @@ import boto.s3
 from boto.s3.key import Key
 
 
-class S3manager():
+class S3manager(p_bucket_name):
 
     _bucket = None
-    _bucket_name = None
+    _bucket_name = p_bucket_name
     _conn = None
 
     _OS_HOST_PATH_SEPARATOR = '\\' if (platform.system().lower() == 'windows') else '/'
@@ -22,7 +22,9 @@ class S3manager():
 
     def __init__(self):
 
-        self._bucket_name = 'heroku-ytg-v2'
+        if self._bucket_name is None:
+            self._bucket_name = 'heroku-ytg-v2'
+
         self._conn = boto.connect_s3() # This way get the ID and pass from default user folder "~/.aws/credentials" file
 
         try:
@@ -31,8 +33,8 @@ class S3manager():
             else:
                 print "Connection is None"
         except boto.exception.S3ResponseError as e:
-            if (self._bucket is not None):
-                print "Bucket is NOT None."
+            if (self._bucket is None):
+                print "Exception Bucket is NOT None."
             else:
                 print "Bucket IS None.  Except: %s" % e.message
                 exit(1)

@@ -68,8 +68,10 @@ _from = None
 _to = None
 _dir = None
 _b_avoid_ddbb = True
+_db_target = None
 _load_files_to_s3 = False
 _get_files_from_s3 = False
+_s3_bucket_name = None
 _s3_dest_path = None
 _b_avoid_progressbar = True
 _oauth_renew = False
@@ -452,8 +454,6 @@ def renew_oauth2_authenticated_service(args):
 
                 return discovery.build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, http=http_auth)
 
-                #youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, http=credentials.authorize(httplib2.Http()))
-
             except AccessTokenRefreshError:
                 print "Warming: Credential is expired. Retrying connection..."
                 b_error = True
@@ -468,7 +468,7 @@ def renew_oauth2_authenticated_service(args):
 
 
 def usage():
-    print 'Usage: '+sys.argv[0]+' -h -m <auto|search|loader[-from yyyy-mm-dd --to yyyy-mm-dd]> --progressbar --db [user/pass:dbname] --s3 [bucket-name] --s3-get --renew'
+    print 'Usage: '+sys.argv[0]+' -h -m <auto|search|loader[-from yyyy-mm-dd --to yyyy-mm-dd]> --progressbar --db [user/pass:dbname] --s3 [bucket-name] --s3-get [dest_dir] --renew'
     print '\n\t-m: or --mode, set the working mode (search, auto collector and loader)'
     print '\t\t--from: load data files since the specified date wirh format \'yyyy-mm-dd\''
     print '\t\t--to: load data files until the specified date wirh format \'yyyy-mm-dd\''
@@ -513,7 +513,7 @@ def main(argv):
 def main(argv):
 
     try:
-        opts, args = getopt.getopt(argv[1:], 'hm:f:', ['help', 'mode=', 'from', 'to', 'dir', 'db', 's3', 's3-get', 'progressbar', 'renew'])
+        opts, args = getopt.getopt(argv[1:], 'hm:f:', ['help', 'mode=', 'from=', 'to=', 'dir=', 'db', 's3', 's3-get=', 'progressbar', 'renew'])
         if not opts:
             print 'No options supplied'
 
@@ -546,10 +546,13 @@ def main(argv):
             _dir = arg
         elif opt in ('--db'): # If parameter set, load data into database
             global _b_avoid_ddbb
+            global _db_target
             _b_avoid_ddbb = False
+            _db_target = arg
         elif opt in ('--s3'): # If parameter set, upload data files to Amazon S3
             global _load_files_to_s3
             _load_files_to_s3 = True
+            _s3_bucket_name = arg
         elif opt in ('--s3-get'): # If parameter set, download data files from Amazon S3 to local
             global _get_files_from_s3
             _get_files_from_s3 = True
@@ -589,24 +592,41 @@ def main(argv):
 
     _proccessing_video = None
 
-    # ----- SOCIAL WEBS -------
-    social_web_service = SocialWebSitesService()
 
     # ----- VIDEOS -------
     yt_search_service = YoutubeVideosService()
 
-
     # --- CHANNELS ----
     yt_channel_service = YoutubeChannelService()
-
-    # ----- MYSQL -------
-    yt_dao = DAOYoutubeCollector()
 
     # ----- YOUTUBE COMMENTS -------
     yt_comments_service = YoutubeCommentsService(argv)
 
     # ----- GOOGLE+ COMMENTS -------
     gp_service = GooglePlusService(argv)
+
+    # ----- SOCIAL WEBS -------
+    social_web_service = SocialWebSitesService()
+
+    # ----- MYSQL -------
+    yt_dao = DAOYoutubeCollector()
+
+    if  not _b_avoid_ddbb or _mode == 'loader':
+        if (_db_target is not None):
+
+            try:
+                db_user = _db_target.split('/')[0]
+                db_passwd = _db_target.split('/')[1].split(':')[0]
+                db_service = _db_target.split('/')[1].split(':')[1]
+                yt_dao.setUser(db_user)
+                yt_dao.setUser(db_passwd)
+                yt_dao.setUser(db_user)
+            except Exception as e:
+                print "Warning: Database parameters are not specified. Please see help to provide the credentials."
+                exit(1)
+        else:
+            print "Warning: Database parameters are not specified. Please see help to provide the credentials."
+            exit(1)
 
     # Verify if diectory log exists, if not, create it
     if not os.path.exists(_DIR_LOG):
@@ -794,14 +814,15 @@ def main(argv):
                 cursor_date += timedelta(days=1)
 
             printLog("\tData files have been loaded correctly!\n")
+            exit(0)
 
 
 
         yt_count = 0
         gp_count = 0
 
-        printLog("\nDownloading video's data:")
-        print "\nDownloading video's data:"
+        printLog("\n\nDownloading video's data:")
+        print "\n\nDownloading video's data:"
         for video in arr_videos:
             video_id = video['id']
             printLog("\nProcessing video with id: '%s' and total comments (approx.): %s\n" % ( video_id, video['statistics']['commentCount'] ))
@@ -928,6 +949,7 @@ def main(argv):
                 b_cargar = "Y";
 
             if b_cargar == "Y":
+
                 printLog("Loading data files into database...")
                 openDataFiles('r')
 
@@ -942,7 +964,7 @@ def main(argv):
 
         if _load_files_to_s3:
 
-            s3_service = S3manager()
+            s3_service = S3manager(_s3_bucket_name)
 
             time_folder = time.strftime("%Y%m%d")
             data_folder = time_folder + s3_service._OS_REMOTE_PATH_SEPARATOR + 'DATA'
