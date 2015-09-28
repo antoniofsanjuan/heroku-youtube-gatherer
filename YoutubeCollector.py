@@ -735,7 +735,7 @@ def main(argv):
                 print "\t* Downloading data files from Amazon S3..."
                 printLog("\t* Downloading data files from Amazon S3...")
 
-                s3_service = S3manager()
+                s3_service = S3manager(_s3_bucket_name)
 
                 s3_service.get_files_to_local(_s3_dest_path)
 
