@@ -551,6 +551,7 @@ def main(argv):
             _db_target = arg
         elif opt in ('--s3'): # If parameter set, upload data files to Amazon S3
             global _load_files_to_s3
+            global _s3_bucket_name
             _load_files_to_s3 = True
             _s3_bucket_name = arg
         elif opt in ('--s3-get'): # If parameter set, download data files from Amazon S3 to local

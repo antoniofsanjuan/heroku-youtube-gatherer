@@ -11,16 +11,16 @@ import boto.s3
 from boto.s3.key import Key
 
 
-class S3manager(p_bucket_name):
+class S3manager():
 
     _bucket = None
-    _bucket_name = p_bucket_name
+    _bucket_name = None
     _conn = None
 
     _OS_HOST_PATH_SEPARATOR = '\\' if (platform.system().lower() == 'windows') else '/'
     _OS_REMOTE_PATH_SEPARATOR = '/'
 
-    def __init__(self):
+    def __init__(self, p_bucket_name):
 
         if self._bucket_name is None:
             self._bucket_name = 'heroku-ytg-v2'
