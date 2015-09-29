@@ -22,7 +22,7 @@ class SocialWebSitesService():
 
                 # this takes a python object and dumps it to a string which is a JSON
                 # representation of that object
-                data = json.load(urllib2.urlopen(url, timeout=10))
+                data = json.load(urllib2.urlopen(url, timeout=15))
 
                 try:
                     result = data['shares']
@@ -48,7 +48,7 @@ class SocialWebSitesService():
 
                 # this takes a python object and dumps it to a string which is a JSON
                 # representation of that object
-                data = json.load(urllib2.urlopen(url, timeout=10))
+                data = json.load(urllib2.urlopen(url, timeout=15))
 
                 try:
                     result = data['count']
@@ -57,7 +57,7 @@ class SocialWebSitesService():
                     result = -1
 
             except Exception as e:
-                print "Twitter: Something wrong with the remote server [retry:%s]" % (4 - retries_count)
+                #print "Twitter: Something wrong with the remote server [retry:%s]" % (4 - retries_count)
                 retries_count -= 1
                 time.sleep(3)
                 continue
@@ -75,7 +75,7 @@ class SocialWebSitesService():
 
                 # this takes a python object and dumps it to a string which is a JSON
                 # representation of that object
-                data = json.load(urllib2.urlopen(url, timeout=10))
+                data = json.load(urllib2.urlopen(url, timeout=15))
 
                 try:
                     result = data['count']
